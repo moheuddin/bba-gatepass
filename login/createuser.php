@@ -1,0 +1,238 @@
+<?php
+session_start();
+error_reporting(0);
+include('../api/dbconfig.php');
+if(strlen($_SESSION['alogin'])==0)
+	{	
+header('location:index.php');
+}
+elseif(isset($_SESSION['role']) && ($_SESSION['role']!='Administrator')){
+    header('location:index.php');
+}else{
+	
+if(isset($_POST['submit']))
+  {	
+	$file = $_FILES['attachment']['name'];
+	$file_loc = $_FILES['attachment']['tmp_name'];
+	$folder="attachment/";
+	$new_file_name = strtolower($file);
+	$final_file=str_replace(' ','-',$new_file_name);
+	
+	$title=$_POST['title'];
+    $description=$_POST['description'];
+    $email=$_POST['email'];
+    $mobile=$_POST['mobile'];
+	//$user=$_SESSION['alogin'];
+	$name=$_POST['name'];
+	$reciver= 'Admin';
+    $password=$_POST['password'];
+    $designation=$_POST['designation'];
+    $attachment=' ';
+
+	if(move_uploaded_file($file_loc,$folder.$final_file))
+		{
+			$attachment=$final_file;
+		}
+
+	
+	try {
+    	$notireciver = 'Admin';
+    $sql="insert into users (name,email,password,designation,role,mobile) values (:name,:email,:password,:designation,:role,:mobile)";
+
+    $querynoti = $dbh->prepare($sql);
+	$querynoti->bindParam(':name', $name, PDO::PARAM_STR);
+	$querynoti->bindParam(':email', $email, PDO::PARAM_STR);
+    $querynoti->bindParam(':password', md5($password), PDO::PARAM_STR);
+    $querynoti->bindParam(':designation', $designation, PDO::PARAM_STR);
+    $querynoti->bindParam(':role', $role, PDO::PARAM_STR);
+    $querynoti->bindParam(':mobile', $mobile, PDO::PARAM_STR);
+    $querynoti->execute();
+	$message="User has been created";
+	} catch (PDOException $e) {
+		//Do your error handling here
+		$message = $e->getMessage();
+}
+
+	
+	$msg=$message;
+}    
+?>
+
+<!doctype html>
+<html lang="en" class="no-js">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="theme-color" content="#3e454c">
+	
+	<title>Edit Profile</title>
+
+	<link rel="stylesheet" href="../assets/css/font-awesome.min.css">
+	<link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+	<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/flatpickr@4/dist/flatpickr.min.css'>
+	
+    <link rel="stylesheet" href="../assets/css/style.css">
+	
+    <style>
+        [v-cloak] { display: none; }
+        .table td.edit { cursor: pointer; }
+        .table td.edit:hover { text-decoration: underline; }
+	
+		 @media print { 
+               .noprint { 
+                  display: none; 
+               } 
+            } 
+			@page 
+		{
+        size:  auto;   /* auto is the initial value */
+        margin: 20mm;
+		}
+		form#mysearchform {
+			margin-top: 20px;
+			margin-bottom: 20px;
+			border: 1px solid #ddd;
+		}
+		.tabs {
+    margin-top: 20px;
+}
+
+    </style>
+	<style>
+	.errorWrap {
+    padding: 10px;
+    margin: 0 0 20px 0;
+	background: #dd3d36;
+	color:#fff;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+}
+.succWrap{
+    padding: 10px;
+    margin: 0 0 20px 0;
+	background: #5cb85c;
+	color:#fff;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+}
+		</style>
+
+
+</head>
+
+<body>
+<?php
+		$sql = "SELECT * from users;";
+		$query = $dbh -> prepare($sql);
+		$query->execute();
+		$result=$query->fetch(PDO::FETCH_OBJ);
+		$cnt=1;	
+?>
+	<?php include('includes/header.php');?>
+
+	<?php //include('includes/leftbar.php');?>
+		<div class="content-wrapper">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="row">
+                       
+							<div class="col-md-12">
+								<div class="panel panel-default">
+									<div class="panel-heading">Create User</div>
+<?php if($error){?><div class="errorWrap"><strong>ERROR</strong>:<?php echo htmlentities($error); ?> </div><?php } 
+				else if($msg){?><div class="succWrap"><strong>SUCCESS</strong>:<?php echo htmlentities($msg); ?> </div><?php }?>
+
+<div class="panel-body">
+<form method="post" class="form-horizontal" enctype="multipart/form-data">
+    <input type="hidden" name="user" value="<?php echo htmlentities($result->email); ?>">
+											<div class="">
+											 <form method="post" class="form-horizontal" enctype="multipart/form-data" name="regform" onSubmit="return validate();">
+												<div class="row">
+													<div class="col-lg-6">
+														<label class="control-label">Name<span style="color:red">*</span></label>
+														<input type="text" name="name" class="form-control" required>
+													</div>
+													<div class="col-lg-6">
+														<label class="control-label">Email<span style="color:red">*</span></label>
+														<input type="text" name="email" class="form-control" required>
+													</div>
+												</div>
+												
+												<div class="row">
+													<div class="col-lg-6">
+													<label class="control-label">Password<span style="color:red">*</span></label>
+													<input type="password" name="password" class="form-control" id="password" required >
+													</div>
+													<div class="col-lg-6">
+														<label class="control-label">Designation<span style="color:red">*</span></label>
+														<input type="text" name="designation" class="form-control" required>
+													</div>
+												</div>
+
+									
+												<div class="row">
+													<div class="col-lg-6">
+														<label class="control-label">Role<span style="color:red">*</span></label>
+														<select name="role" class="form-control" required>
+														<option value="">Select</option>
+														<option value="1">Admininstrator</option>
+														<option value="2">Issuer</option>
+														<option value="3">Reception</option>
+														</select>
+													</div>
+													<div class="col-lg-6">
+														<label class="control-label">Mobile<span style="color:red">*</span></label>
+														<input type="number" name="mobile" class="form-control" required>
+													</div>
+												</div>
+
+												<div class="row">
+												<div class="col-lg-12">
+												<label class="control-label">Avtar</label>
+													<input type="file" name="attachment" class="form-control">
+
+												</div>
+												</div>
+
+													<br>
+													<button class="button is-primary" name="submit" type="submit">Save</button>
+													
+												</div>
+										
+
+
+</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	
+
+	<!-- Loading Scripts -->
+	<?php include 'include/footer-text.php';?>
+	<!-- Loading Scripts -->
+	<script src="assets/js/jquery-3.5.1.min.js"></script>
+	<script type="text/javascript">
+				 $(document).ready(function () {          
+					setTimeout(function() {
+						$('.succWrap').slideUp("slow");
+					}, 3000);
+					});
+	</script>
+	<style>
+.panel.panel-default {
+    margin-top: 20px;
+}
+</style>
+</body>
+</html>
+<?php } ?>

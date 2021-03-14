@@ -1,0 +1,18 @@
+data () {
+	return {
+		polling: null
+	}
+},
+methods: {
+	pollData () {
+		this.polling = setInterval(() => {
+			this.$store.dispatch('RETRIEVE_DATA_FROM_BACKEND')
+		}, 3000)
+	}
+},
+beforeDestroy () {
+	clearInterval(this.polling)
+},
+created () {
+	this.pollData()
+}

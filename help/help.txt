@@ -1,0 +1,15 @@
+mounted: function () {
+  this.timer = setInterval(() => {
+    this.countDown()
+  }, 1000)
+},
+
+data() {
+  return {
+    timer: null
+  }
+},
+
+beforeDestroy() {
+  clearInterval(this.timer)
+}

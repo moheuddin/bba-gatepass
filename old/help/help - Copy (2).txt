@@ -1,0 +1,24 @@
+new Vue({
+  el: '#app',
+  data: {
+    items: []
+  },
+  methods: {
+    loadData: function () {
+      $.get('/api/data', function (response) {
+        this.items = response.items;
+      }.bind(this));
+    }
+  },
+  ready: function () {
+    this.loadData();
+
+    setInterval(function () {
+      this.loadData();
+    }.bind(this), 30000); 
+  }
+});
+
+<div id="app">
+  <div v-for="item in items">{{ item.prop }}</div>
+</div>
